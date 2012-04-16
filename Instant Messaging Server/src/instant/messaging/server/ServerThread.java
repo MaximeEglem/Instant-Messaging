@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import java.util.Date;
 
 import java.io.File;
-import java.io.FilenameFilter;
+import java.util.*;
 
 
 
@@ -21,13 +21,39 @@ class ServerThread implements Runnable {
     public String recievedPassword;
     DataInputStream in;
     DataOutputStream out;
+    ObjectOutput oos;
     ServerLogic ser;
+    String finishedlist = "";
+    ArrayList<String> clients; //Contacts list
 
     //Constructor
     ServerThread(Socket client) {
         this.client = client;
     }
+    
+    public void sendClients(){	//Sending contact list
+		
+        try {
+                    Iterator iter = clients.iterator();
+                        while (iter.hasNext()) {
+                        System.out.println("Contact server:  " + iter.next());
+                        }
+                       
+            oos = new ObjectOutputStream(client.getOutputStream());
+            oos.writeObject(clients);
+            oos.flush();
+               
+		} catch (IOException e) {
+                    System.err.println("Error : Cannot send the contacts list :" +e.getMessage());
+		}
+	}
 
+    public void registre(){  //L'enregistement du client dans la liste des contacts
+		//Registring client
+		clients.add(client.getRemoteSocketAddress().toString());
+		
+	}
+    
     //get the username and password of the first packet
     public void getCredentials() {
         try {
@@ -52,20 +78,38 @@ class ServerThread implements Runnable {
     }
     //CURRENTLY UNDER CONSTRUCTION
     public void setRecentHashMapForUsers(HashMap<String, ServerThread> connectedClients) {
+       
+        clients = new ArrayList<String>();
+       System.out.println("setRecentHashMapForUsers");
+       //this.clients.clear();
+       Iterator iter = connectedClients.entrySet().iterator();
+ 
+        while (iter.hasNext()) {
+                Map.Entry mEntry = (Map.Entry) iter.next();
+                this.clients.add(mEntry.getKey().toString());
+                System.out.println(mEntry.getKey());
+        }
         
+
+        //sendClients();
+       /*
+       
        String completeList = connectedClients.toString();
        completeList.replace("{", "");
        completeList.replace("}", "");
-       String finishedlist = "";
+       this.finishedlist = "";
        String[] singleUser = completeList.split(",");
        for (int i=0; i <= singleUser.length;i++) {
            String user = singleUser.toString();
-            finishedlist = finishedlist + user.substring(0, user.indexOf("="));
+            this.finishedlist = this.finishedlist + user.substring(0, user.indexOf("="));
             
        }
 
-       System.out.println("this is the finished list: "+finishedlist);
+       System.out.println("this is the finished list: "+this.finishedlist);
+       //sendClients();
         
+        
+        */
     }
 
     
@@ -205,6 +249,7 @@ class ServerThread implements Runnable {
 
             //welcome message print
             writeMessage("Welcome to chat server 0.1 beta \n");
+
             
             CheckChatHistory(recievedUsername);
             
@@ -240,12 +285,15 @@ class ServerThread implements Runnable {
                 } // message is for multiple users
                 else if (forUser.contains(",") == true) {
                     System.out.println("MULTI user communication");
+                    System.out.println("String forUser  : (" + forUser+")");
                     // prepare the string
                     String[] multipleUsers = forUser.split(",");
                     //iterate the users of the multipleUsers string array
-                    for (int i = 0; i <= multipleUsers.length; i++) {
+                    System.out.println("lenght : " + multipleUsers.length);
+                    for (int i = 0; i < multipleUsers.length; i++) {
+                        System.out.println("users name  : (" + multipleUsers[i]+")");
                         //check if client user is currently online
-                        if (connectedClients.containsKey(forUser) == true) {
+                        if (connectedClients.containsKey(multipleUsers[i]) == true) {
                             writeMessageToOnlineUser(multipleUsers[i], recievedUsername, cutMessage[1]);
                         } // user is not online
                         else {

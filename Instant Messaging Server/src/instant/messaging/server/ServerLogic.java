@@ -55,7 +55,7 @@ public class ServerLogic{
         System.out.println(connectedClients.size());
         
         //method to set the recent hashmap of online users for the clients
-        //connection.setRecentHashMapForUsers(connectedClients);
+        connection.setRecentHashMapForUsers(connectedClients);
         
       }
       //new users handling

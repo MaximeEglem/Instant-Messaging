@@ -187,7 +187,7 @@ public class MainWindow extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(cmd_connect, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(cmd_disconnect, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE))
+                        .addComponent(cmd_disconnect, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))
                     .addComponent(txt_password, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(txt_username, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
@@ -334,7 +334,7 @@ public class MainWindow extends javax.swing.JFrame {
                 JTabbedPane panel = tabpanel_chathistory;
                 int i = panel.getSelectedIndex();
                 System.out.println(i);
-                System.out.println("aktuell gewählte komponent: "+panel.getComponentAt(i).toString());
+                System.out.println("selected component: "+panel.getComponentAt(i).toString());
                 
 
                 
@@ -438,7 +438,7 @@ public class MainWindow extends javax.swing.JFrame {
     private void addUserButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addUserButtonActionPerformed
 
 
-
+        //userTabList.removeAll(userTabList);
         //stores old tab-title
         String olduser = tabpanel_chathistory.getTitleAt(tabpanel_chathistory.getSelectedIndex());
         String newuser = (String) lbx_users_online.getModel().getElementAt(lbx_users_online.getSelectedIndex());
@@ -447,7 +447,7 @@ public class MainWindow extends javax.swing.JFrame {
             //sets new title
             tabpanel_chathistory.setTitleAt(tabpanel_chathistory.getSelectedIndex(), olduser + "," + newuser);
             //adds a new user to the TabList array to know where message belongs
-            userTabList.add(lbx_users_online.getModel().getElementAt(lbx_users_online.getSelectedIndex()).toString());
+            //userTabList.add(lbx_users_online.getModel().getElementAt(lbx_users_online.getSelectedIndex()).toString());
             //sorting the userTabList in ascending order
             Collections.sort(userTabList);
         }

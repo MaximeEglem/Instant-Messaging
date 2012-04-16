@@ -7,6 +7,8 @@ package instant.messaging.client;
 import java.awt.Component;
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTabbedPane;
@@ -21,6 +23,8 @@ public class ClientThread extends Thread {
     DataInputStream is = null;
     DataOutputStream os = null;
     Socket clientSocket = null;
+    ObjectInputStream ois = null;
+    ArrayList<String> contacts = new ArrayList<String>(); //Contacts list
     private final JTextArea history;
     private final JTabbedPane panel;
     private final String username;
@@ -44,6 +48,25 @@ public class ClientThread extends Thread {
 
             while (true) {
 
+                //*******************List Contacts***********************//
+                
+           /*  
+                
+                try {
+			contacts = (ArrayList<String>)ois.readObject();	//Ecoute de la liste des contacts
+                        Iterator iter = contacts.iterator();
+                        while (iter.hasNext()) {
+                        System.out.println("Contact :  " + iter.next());
+                        }
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		} catch (ClassNotFoundException e) {
+			System.out.println(e.getMessage());
+		}
+                
+                */
+                
+                //*******************************************************//
                 recievedmessage = is.readUTF();
                 String[] cutMessage = recievedmessage.split(":");
                 String fromUser = cutMessage[0];
