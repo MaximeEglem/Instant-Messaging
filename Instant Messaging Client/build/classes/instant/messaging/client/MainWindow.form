@@ -8,7 +8,7 @@
       <Rectangle value="[400, 200, 483, 300]"/>
     </Property>
     <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
-      <Color id="Pointeur par d&#xe9;faut"/>
+      <Color id="Standardcursor"/>
     </Property>
   </Properties>
   <SyntheticProperties>

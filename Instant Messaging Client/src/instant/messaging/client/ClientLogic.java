@@ -28,6 +28,7 @@ public class ClientLogic {
             out.writeUTF(username + ":" + password);
             System.out.println("login data sent "+username + ":" + password);
             out.flush();
+            
             return true;
         } catch (UnknownHostException e) {
             System.out.println("Unknown host");

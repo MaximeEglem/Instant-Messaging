@@ -4,6 +4,7 @@
  */
 package instant.messaging.client;
 
+import java.io.DataInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -109,10 +110,21 @@ public class Registration extends javax.swing.JFrame {
     private void regcmd_createActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_regcmd_createActionPerformed
         try {
             ClientLogic cl = new ClientLogic();
-            if (cl.listenSocket("new"+regtxt_username.getText(), cl.SHA(regtxt_password.getText())) ==true) {
-                Registration.this.dispose();
-                JOptionPane.showMessageDialog(null, "Account created!", "Success", JOptionPane.WARNING_MESSAGE);
-            } else {JOptionPane.showMessageDialog(null, "Account could not be Created!", "Error", JOptionPane.ERROR_MESSAGE);}
+            if (cl.listenSocket("new"+regtxt_username.getText(), cl.SHA(regtxt_password.getText())) == true) {
+                String fullMessage = cl.in.readUTF();
+                String[] cutMessage = fullMessage.split("]");
+                String result = cutMessage[0];
+                String message = cutMessage[1];
+                System.out.println("INCOMING: " + fullMessage );
+                
+                if(result.substring(1).equalsIgnoreCase("Success")){
+                
+                JOptionPane.showMessageDialog(null, message, "Success", JOptionPane.WARNING_MESSAGE);
+                this.dispose();
+                }
+                else
+                JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.WARNING_MESSAGE);
+            }
         } catch (Exception ex) {
             Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
         }

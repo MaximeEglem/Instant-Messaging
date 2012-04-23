@@ -19,16 +19,58 @@ class ServerThread implements Runnable {
     HashMap<String, ServerThread> connectedClients;
     public String recievedUsername;
     public String recievedPassword;
+    
+    private String action;
+    private String[] users;
+    private String stringUsers;
+    private String message;
+    
     DataInputStream in;
     DataOutputStream out;
     ObjectOutput oos;
     ServerLogic ser;
     String finishedlist = "";
+    Boolean errorUserConnection = true;
     ArrayList<String> clients; //Contacts list
 
     //Constructor
     ServerThread(Socket client) {
         this.client = client;
+    }
+    
+    public String getAction(){
+        return this.action;
+    }
+    
+    public String getUsers(int value){
+        return this.users[value];
+    }
+    
+    public String getMessage(){
+        return this.message;
+    }
+    
+    public String getStringUsers(){
+        return this.stringUsers;
+    }
+    
+    public void setAction(String value){
+        this.action = value;
+    }
+    
+    public void setUsers(String values){
+        values = values.replaceAll(" ", "");
+        setStringUsers(values);
+        String[] usersName = values.split(",");
+        this.users = usersName;
+    }
+    
+    public void setMessage(String value){
+        this.message = value;
+    }
+    
+    public void setStringUsers(String value){
+        this.stringUsers = value;
     }
     
     public void sendClients(){	//Sending contact list
@@ -47,6 +89,14 @@ class ServerThread implements Runnable {
                     System.err.println("Error : Cannot send the contacts list :" +e.getMessage());
 		}
 	}
+    
+    public Boolean isErrorUserConnection(){
+        return errorUserConnection;
+    }
+    
+    public void setErrorUserConnection(Boolean value){
+         this.errorUserConnection = value;
+    }
 
     public void registre(){  //L'enregistement du client dans la liste des contacts
 		//Registring client
@@ -89,8 +139,20 @@ class ServerThread implements Runnable {
                 this.clients.add(mEntry.getKey().toString());
                 System.out.println(mEntry.getKey());
         }
+        String onlineClients = clients.toString();
+        //get all offline users from userlist file
+        ArrayList offlineClients = new ArrayList<String>();
+        //offlineClients =ser.getOfflineUsers(recievedUsername);
+        //offlineClients.toString();
         
-
+       
+            //out.writeUTF("%newList%:"+onlineClients+""+offlineClients);
+            //out.flush();
+            System.out.println("%newList%:"+onlineClients+""+offlineClients);
+        
+        
+        
+        
         //sendClients();
        /*
        
@@ -250,7 +312,7 @@ class ServerThread implements Runnable {
             //welcome message print
             writeMessage("Welcome to chat server 0.1 beta \n");
 
-            
+            //check if there is a offline message for the logged in user
             CheckChatHistory(recievedUsername);
             
             System.out.println("User: " + recievedUsername + " logged in with password: " + recievedPassword);
@@ -259,59 +321,102 @@ class ServerThread implements Runnable {
                 //prepare incoming message for sending to corresponding client
                 String fullMessage = in.readUTF().toString();
                 System.out.println("INCOMING: " + fullMessage);
-                String[] cutMessage = fullMessage.split("]");
-                String forUser = cutMessage[0].replace("[", "");
-
-                //check if message is for multiple users
-                // if "," is contained within the forUser string it is a message for multiple users
-                if (forUser.toLowerCase().contains("chat") == true) {
-                    System.out.println("message is for broadcast");
-                    //iterate the whole hashmap to send a message to all online users
-                    for (String currentUser : connectedClients.keySet()) {
-                        if (!currentUser.equals(recievedUsername)) {
-                            writeMessageToOnlineUser(currentUser, recievedUsername, cutMessage[1] + "&&all");
-                        }
-                    }
-                } // message is for single conversation
-                else if (forUser.contains(",") == false && forUser.contains("chat") == false) {
-                    System.out.println("SINGLE user communication");
-                    //check if client user is currently online
-                    if (connectedClients.containsKey(forUser) == true) {
-                        writeMessageToOnlineUser(forUser, recievedUsername, cutMessage[1]);
-                    } else {
-                        writeMessageToOfflineUser(forUser, recievedUsername, cutMessage[1]);
-                        System.out.println("User not online, offline message has been sent");
-                    }
-                } // message is for multiple users
-                else if (forUser.contains(",") == true) {
-                    System.out.println("MULTI user communication");
-                    System.out.println("String forUser  : (" + forUser+")");
-                    // prepare the string
-                    String[] multipleUsers = forUser.split(",");
-                    //iterate the users of the multipleUsers string array
-                    System.out.println("lenght : " + multipleUsers.length);
-                    for (int i = 0; i < multipleUsers.length; i++) {
-                        System.out.println("users name  : (" + multipleUsers[i]+")");
-                        //check if client user is currently online
-                        if (connectedClients.containsKey(multipleUsers[i]) == true) {
-                            writeMessageToOnlineUser(multipleUsers[i], recievedUsername, cutMessage[1]);
-                        } // user is not online
-                        else {
-                            writeMessageToOfflineUser(multipleUsers[i], recievedUsername, cutMessage[1]);
-                            System.out.println("User not online, offline message has been sent");
-                        }
-                    }
-                } 
-                else if (cutMessage[1].contains("/logoffuser")) {
-                    connectedClients.remove(cutMessage[0]);
-                    System.err.println("user hase been logged of and removed from the hashmap");
-                            
-                }
+                             
+                dataProcessing(fullMessage);           
                 
             }
         } catch (IOException e) {
             System.out.println("in or out failed");
-            System.exit(-1);
+            //System.exit(-1);
         }
+        
     }
+    
+    
+    
+    private void dataProcessing(String fullMessage){
+        
+        splitMessageInformaton(fullMessage);
+        findAction();
+        
+    }
+    
+    private void splitMessageInformaton(String actionMessage){
+         
+        String[] information;
+        information = actionMessage.split("]");
+        
+        
+        for (int i = 0; i < information.length; i++){
+          information[i] = information[i].substring(1);
+         
+            switch(i){
+                case 0 : this.setAction(information[0]);
+                break;
+                
+                case 1 : this.setUsers(information[1]);
+                break;
+             
+                case 2 : 
+                    information = actionMessage.split(information[1]); // Even if a caractere [" appear the message will be corectly display
+                    this.setMessage(information[1].substring(2,information[1].length()-1)); // delete ][ at the begining anf ] and the end one the string
+                break;
+            }
+    }
+      
+    }
+    
+    private void findAction(){
+     
+        if (this.action.equals("LOG-USER-OFF")){
+            connectedClients.remove(this.users);
+            System.out.println("User " + this.getUsers(0) + " has been logged of and removed from the hashmap");
+        }
+        else if (this.action.equals("BROADCAST")){
+            System.out.println("message for everyone");
+            //iterate the whole hashmap to send a message to all online users
+            for (String currentUser : connectedClients.keySet()) {
+                if (!currentUser.equals(recievedUsername)) {
+                    writeMessageToOnlineUser(currentUser, recievedUsername, this.getMessage() + "&&all");
+                }
+            }
+        }
+        else if (this.action.equals("USER")){ // message is for single conversation
+            System.out.println("SINGLE user communication : " + this.getUsers(0));
+            //check if client user is currently online
+            if (connectedClients.containsKey(this.getUsers(0)) == true) {
+                writeMessageToOnlineUser(this.getUsers(0), recievedUsername, this.getMessage());
+            } else {
+                writeMessageToOfflineUser(this.getUsers(0), recievedUsername, this.getMessage());
+                System.out.println("User not online, offline message has been sent");
+            }
+        }
+        else if (this.action.equals("USERS")){ // message is for multiple users
+            System.out.println("MULTI user communication");
+            //iterate the users of the multipleUsers string array
+            System.out.println("lenght : " + this.users.length);
+            for (int i = 0; i < this.users.length; i++) {
+                System.out.println("users name  : (" + this.getUsers(i)+")");
+                //check if client user is currently online
+                if (connectedClients.containsKey(this.getUsers(i)) == true) {
+                    writeMessageToOnlineUser(this.getUsers(i), recievedUsername, this.getMessage() + "&&USERS::" + this.getStringUsers());
+                }
+            }
+        }
+        else if (this.action.equals("REQUEST")){ // Asking permittion to add him into a group
+            if (connectedClients.containsKey(this.getUsers(0)) == true) {
+                writeMessageToOnlineUser(this.getUsers(0), recievedUsername, this.getMessage() + "&&REQUEST");
+            }
+        }
+        else if(this.action.equals("REQUEST-ANSWERED")){
+            for (int i = 0; i < this.users.length; i++) {
+                if (connectedClients.containsKey(this.getUsers(i)) == true) {
+                    writeMessageToOnlineUser(this.getUsers(i), recievedUsername, this.getStringUsers() + this.getMessage() + "&&ANSWERED");
+                }
+            }
+        }
+        
+    }  
+                
+    
 }

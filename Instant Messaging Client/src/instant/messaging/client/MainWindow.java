@@ -305,7 +305,7 @@ public class MainWindow extends javax.swing.JFrame {
             System.out.println("Connection could not be established");
         }
         } catch (Exception ex) {
-            System.err.println("Bad username or Password");
+            System.err.println("Username or Password can't be empty");
         }
     }//GEN-LAST:event_cmd_connectActionPerformed
 
@@ -314,27 +314,35 @@ public class MainWindow extends javax.swing.JFrame {
     //fired when send is hit
     private void cmd_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmd_sendActionPerformed
 
-
+        String message;
+        String action;
         String tabtitle = tabpanel_chathistory.getTitleAt(tabpanel_chathistory.getSelectedIndex()).toString();
         System.out.println("current tab title: " + tabtitle);
-        if (userTabList.contains("Chat") == false) {
-            userTabList.add(tabtitle);
-            
-        }
+        
+        message = "[" + txt_sendingField.getText() + "]";
+        if(tabtitle.equals("Chat"))
+            action = "[BROADCAST]";
+        else if (tabtitle.contains(","))
+            action = "[USERS]";
+        else
+            action = "[USER]";
+         
+        tabtitle = "[" + tabtitle + "]";
+        
         //checks if sending field is empty
         if (!"".equals(txt_sendingField.getText())) {
             try {
                 //write message to outputstream
-                System.out.println(userTabList + txt_sendingField.getText());
-                cl.out.writeUTF(userTabList + txt_sendingField.getText());
+                cl.out.writeUTF(action + tabtitle + message);
                 cl.out.flush();
-                System.out.println("message for: " + userTabList + " content: " + txt_sendingField.getText());
+                System.out.println("OUTCOMMING: " + action + tabtitle + message);
+                System.out.println("message for: " + tabtitle + " content: " + message);
                 
                 
                 JTabbedPane panel = tabpanel_chathistory;
                 int i = panel.getSelectedIndex();
                 System.out.println(i);
-                System.out.println("selected component: "+panel.getComponentAt(i).toString());
+                //System.out.println("selected component: "+panel.getComponentAt(i).toString());
                 
 
                 
@@ -363,7 +371,8 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void cmd_disconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmd_disconnectActionPerformed
         try {
-            cl.out.writeUTF(txt_username+":/logoffuser");
+            cl.out.writeUTF(txt_username.getText()+":/logoffuser");
+            cl.out.flush();
             cl.socket.close();
             //enable needed components
             cmd_regNewUser.setEnabled(true);
@@ -444,14 +453,25 @@ public class MainWindow extends javax.swing.JFrame {
         String newuser = (String) lbx_users_online.getModel().getElementAt(lbx_users_online.getSelectedIndex());
 
         if (olduser.contains(newuser) == false) {
+            
+            try{
+            cl.out.writeUTF("[REQUEST]" + "[" + newuser + "]" + "[" + olduser + "]");
+            cl.out.flush();
+            } catch (IOException ex) {
+                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
             //sets new title
-            tabpanel_chathistory.setTitleAt(tabpanel_chathistory.getSelectedIndex(), olduser + "," + newuser);
+            //tabpanel_chathistory.setTitleAt(tabpanel_chathistory.getSelectedIndex(), olduser + "," + newuser);
             //adds a new user to the TabList array to know where message belongs
             //userTabList.add(lbx_users_online.getModel().getElementAt(lbx_users_online.getSelectedIndex()).toString());
             //sorting the userTabList in ascending order
             Collections.sort(userTabList);
         }
         System.out.println(userTabList);
+        System.out.println("[" + newuser + "]" +  olduser);
+        //send to the chatter the new client for the tab
+        
     }//GEN-LAST:event_addUserButtonActionPerformed
 
     private void chk_userActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chk_userActionPerformed
